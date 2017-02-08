@@ -1,106 +1,126 @@
 # Written in Python 3
 
-# Basic entry unit
-# Each entry represents
-# (1) Dr.(true)/Cr.(false) (2) certain account for (3) certain amount of currency
+from datetime import date
 
-class Track:
-    """Track holds a ledger containing all information.
+# root object Track
 
-    Ledger holds all accounts and their information.
-    """
-    def __init__(self, default = True):
-        """Initialize Track with a ledger.
+# transactions contains a list of Transaction.
+transactions = []
+accounts = []
 
-        Ledger is a list holding all accounts,
-        in which each item contains account information, a dict.
-        Optional initialization of ledger with default settings.
-        """
-        self.ledger = []
-        # setup with default settings
-        if default == True:
-            self.add_account("Cash", True)
-            self.add_account("Deposit", True, "Bank deposit")
-            self.add_account("Salary", False, "Salary income")
+def add_transaction(date, splits, description = '', tags = ''):
+    transaction = Transaction(date, splits, description, tags)
+    transactions.append(transaction)
+    print('-'*20)
+    print('Transaction added successfully.')
+    transaction.show()
+    print('-'*20)
 
-    #
-    # Account management
-    #
-    def add_account(self, name, isReal, description = None):
-        """Add a new account to the ledger list.
+def show_accounts():
+    for account in accounts:
+        print(account.name)
+        print('Balance:', account.balance)
 
-        name is the account name.
-        name should not be the same as any existing account name.
-        name will be normalized with strip().
+def show_transactions():
+    for transaction in transactions:
+        transaction.show()
 
-        isReal should be
-        either True for real account, which includes assets and liabilities,
-        or False for nominal account, which includes incomes and expenses.
+# Each Transaction has a date, at least two Splits that balance,
+# an optional description, and an optional string of tags.
+class Transaction:
+    def __init__(self, date, splits, description = '', tags = ''):
+        self.date = date
+        self._splits = splits
+        self.description = description
+        self.tags = tags
 
-        description is an optional account description string.
-        """
-        # strip name string
-        name = name.strip()
-        if name not in self.accounts('name'):
-            self.ledger.append({'name': name,
-                                'isReal': isReal,
-                                'description': description,
-                                'transactions': []
-                                })
-            print("Account \'%s\' created" % name)
-        else:
-            print("Account already exists!")
+    def show(self):
+        print('-'*5+'Transaction detail:')
+        print('Date: ', self.date)
+        print('Description: ', self.description)
+        print('Tags: ', self.tags)
+        for split in self.splits:
+            if(split['amount'] < 0):
+                print(-split['amount'], '從', split['account'],
+                 ' p.s. '+split['description'] if split['description'] else '')
+            else:
+                print(split['amount'], '到', split['account'],
+                 ' p.s. '+split['description'] if split['description'] else '')
 
-    def update_account(self, index, key, value):
-        """Update account information."""
-        self.ledger[index][key] = value
-        print("\'%s\' on index %s updated as \'%s\'" % (key, index, value))
+    # Each Split
+    # has the affected account, which cannot be a placeholder account,
+    # the amount taking effect,
+    # is either Dr. or Cr., represented by positive or negative amount respectively,
+    # and an optional description.
+    @property
+    def splits(self):
+        return self._splits
 
-    def delete_account(self, index):
-        """Delete a given account"""
-        name = self.ledger[index]['name']
-        del self.ledger[index]
-        print("Account \'%s\' deleted at index %s." % (name, index))
+    @splits.setter
+    def splits(self, splits):
+        # Check the number of splits
+        if len(splits) == 0:
+            raise Exception('Transaction should at least have two splits.')
+        # Check the total debit and total credit amount of the transaction balance
+        if sum(split['amount'] for split in splits) != 0:
+            raise Exception('Total debit and credit amount should balance.')
+        self._splits = splits
 
-    def accounts(self, key):
-        """Generator for values of given key from all accounts."""
-        for account in self.ledger:
-            yield account[key]
+def split(amount, account, description = ''):
+    if amount == 0:
+        raise Exception('Split amount cannot be zero.')
+    # Check the account involved exists
+    if account not in accounts:
+        raise Exception('Account %s does not exists' % split['account'])
+    return {'amount': amount, 'account': account, 'description': description}
 
-    def print_account(self, index, account):
-        print("Account", index)
-        if account['isReal']:
-            print(account['name'] + " is a real account.")
-        else:
-            print(account['name'] + " is a nominal account.")
-        print("Description:", account['description'])
 
-    def show_account(self, index = None):
-        if index is not None:
-            self.print_account(index, self.ledger[index])
-        else:
-            for i, account in enumerate(self.ledger):
-                self.print_account(i, account)
+# Accounts is a nested list of Account and its description
+# Each Account is a dict and should belong to one of the basic types of accounts:
+# Assets, Liabilities, Equity, Incomes, or Expenses.
+# An Account could be a placeholder account which does not hold a balance.
+accounts = [
+'資產::流動資產::現金',
+'資產::流動資產::存款',
+'資產::流動資產::悠遊卡',
+'資產::點數紅利::深藏咖啡點數',
+'支出::飲食::飲料',
+'支出::飲食::早餐',
+'支出::飲食::午餐',
+'支出::飲食::晚餐',
+'支出::飲食::點心',
+'收入::工作收入'
+]
 
-    #
-    # Transaction management
-    #
-    def add_transaction(self):
-        pass
+class Account:
+    def __init__(self, parent, placeholder = False):
+        self.parent = parent
+        self.placeholder = placeholder
+        self._balance = 0
 
-    #
-    # Report management
-    #
+    @property
+    def balance(self):
+        return self._balance
+
 
 if __name__ == '__main__':
-    track = Track()
-    print()
-    track.show_account()
-    print()
-    track.add_account('Food expenses', False)
-    track.update_account(0, 'description', 'Cash in my wallet')
-    track.delete_account(1)
-    print()
-    track.show_account()
-    print()
-    track.show_account(1)
+    add_transaction(
+        date.today(),
+        [
+        split(-60, '資產::流動資產::現金'),
+        split(54, '支出::飲食::飲料', '深藏咖啡'),
+        split(6, '資產::點數紅利::深藏咖啡點數', '深藏咖啡點數')
+        ],
+        description = '熱摩卡無糖',
+        tags = ''
+    )
+    add_transaction(
+        date.today(),
+        [
+        split(69, '支出::飲食::晚餐', '頂好 嘉義文蛤'),
+        split(-69, '資產::流動資產::悠遊卡', '一仁悠遊卡')
+        ],
+        description = '頂好 嘉義文蛤',
+        tags = '過年 家裡開火'
+    )
+    show_transactions()

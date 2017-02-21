@@ -2,15 +2,26 @@
 
 from datetime import date
 
+
+# transactions is a list of all transaction recorded
 transactions = []
+
+# accounts is a list of all accounts registered
 accounts = []
 
 
-# Each transaction consists of a date, at least two splits which balance,
-# an optional description, and an optional string of tags.
+# Each transaction consists of a date,
+# at least two splits which balance,
+# an optional description,
+# and an optional string of tags.
 # tags are words separated by white space.
-def transaction(date, splits, description = '', tags = ''):
-    return {'date': date, 'splits': splits, 'description': description, 'tags': tags}
+def create_transaction(date, splits, description = '', tags = ''):
+    return {
+        'date': date,
+        'splits': splits,
+        'description': description,
+        'tags': tags,
+        }
 
 def is_valid_transaction(transaction):
     #
@@ -28,17 +39,21 @@ def is_valid_transaction(transaction):
         if split['amount'] == 0:
             return False
         # Check the account involved exists
-        if split['account_name'] not in account_names():
+        if split['account_name'] not in list_account_names():
             return False
     return True
 
-# Each split
-# has the affected account name,
+# Each split has
+# the affected account name,
 # the amount taking effect,
 # is either Dr. or Cr., represented by positive or negative amount respectively,
 # and an optional description.
-def split(amount, account_name, description = ''):
-    return {'amount': amount, 'account_name': account_name, 'description': description}
+def create_split(amount, account_name, description = ''):
+    return {
+        'amount': amount,
+        'account_name': account_name,
+        'description': description,
+        }
 
 def add_transaction(transaction):
     if is_valid_transaction(transaction):
@@ -73,71 +88,75 @@ def show_transactions():
     for transaction in transactions:
         show_transaction(transaction)
 
-# Accounts is a list of accounts, its type and description
-# Each Account is a dict and should belong to one of the basic types of accounts:
-# Assets, Liabilities, Equity, Incomes, or Expenses.
-def account(account_name, account_type, description = ''):
-    return {'account_name': account_name, 'account_type': account_type, 'description': description}
+# Each account is a dict and should belong to one of the basic types of accounts:
+# asset, liability, equity, income, or expense.
+def create_account(account_name, account_type, description = ''):
+    return {
+        'account_name': account_name,
+        'account_type': account_type,
+        'description': description,
+        }
 
 account_types = ['asset', 'liability', 'equity', 'income', 'expense']
 
 def is_valid_account(account):
-    if account['account_name'] in account_names():
+    if account['account_name'] in list_account_names():
         return False
     elif account['account_type'] not in account_types:
         return False
     else:
         return True
 
-def account_names():
+def list_account_names():
     return [account['account_name'] for account in accounts]
 
-def account_balance(account):
-    return sum(split['amount'] for transaction in transactions \
-                                   for split in transaction['splits'] \
-                                       if split['account_name'] == account['account_name'])
+def calculate_account_balance(account):
+    return sum(split['amount']
+        for transaction in transactions \
+            for split in transaction['splits'] \
+                if split['account_name'] == account['account_name'])
 
-def show_account(account):
+def show_account_detail(account):
     print('-'*5 + 'Account Information' + '-'*6)
     print('Name:', account['account_name'])
     print('Type:', account['account_type'])
     print('Description:', account['description'])
-    print('Balance:', account_balance(account))
+    print('Balance:', calculate_account_balance(account))
     print('-'*30)
 
-def show_accounts():
+def show_accounts_detail():
     for account in accounts:
-        show_account(account)
+        show_account_detail(account)
 
 if __name__ == '__main__':
     # initialize accounts
-    accounts.append(account('資產::流動資產::現金', 'asset'))
-    accounts.append(account('資產::點數紅利::深藏咖啡點數', 'asset'))
-    accounts.append(account('支出::飲食::飲料', 'expense'))
+    accounts.append(create_account('資產::流動資產::現金', 'asset'))
+    accounts.append(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
+    accounts.append(create_account('支出::飲食::飲料', 'expense'))
 
 
-    t1 = transaction(
+    t1 = create_transaction(
         date.today(),
         [
-        split(-60, '資產::流動資產::現金'),
-        split(54, '支出::飲食::飲料', '深藏咖啡'),
-        split(6, '資產::點數紅利::深藏咖啡點數', '深藏咖啡點數')
+        create_split(-60, '資產::流動資產::現金'),
+        create_split(54, '支出::飲食::飲料', '深藏咖啡'),
+        create_split(6, '資產::點數紅利::深藏咖啡點數', '深藏咖啡點數'),
         ],
         description = '熱摩卡無糖',
-        tags = ''
+        tags = '',
     )
     add_transaction(t1)
     print(is_valid_transaction(t1))
-    t2 = transaction(
+    t2 = create_transaction(
         date.today(),
         [
-        split(69, '支出::飲食::晚餐', '頂好 嘉義文蛤'),
-        split(-69, '資產::流動資產::悠遊卡', '一仁悠遊卡')
+        create_split(69, '支出::飲食::晚餐', '頂好 嘉義文蛤'),
+        create_split(-69, '資產::流動資產::悠遊卡', '一仁悠遊卡'),
         ],
         description = '頂好 嘉義文蛤',
-        tags = '過年 家裡開火'
+        tags = '過年 家裡開火',
     )
     add_transaction(t2)
     print(is_valid_transaction(t2))
     show_transactions()
-    show_accounts()
+    show_accounts_detail()

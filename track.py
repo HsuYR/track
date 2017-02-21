@@ -77,13 +77,13 @@ def show_transactions():
 # Accounts is a list of accounts, its type and description
 # Each Account is a dict and should belong to one of the basic types of accounts:
 # Assets, Liabilities, Equity, Incomes, or Expenses.
-def account(name, account_type, description = ''):
-    return {'name': name, 'account_type': account_type, 'description': description}
+def account(account_name, account_type, description = ''):
+    return {'account_name': account_name, 'account_type': account_type, 'description': description}
 
 account_types = ['asset', 'liability', 'equity', 'income', 'expense']
 
 def is_valid_account(account):
-    if account['name'] in [account['name'] for account in accounts]:
+    if account['account_name'] in [account['account_name'] for account in accounts]:
         return False
     elif account['account_type'] not in account_types:
         return False
@@ -92,12 +92,12 @@ def is_valid_account(account):
 
 def account_balance(account):
     return sum(split['amount'] for transaction in transactions \
-                                for split in transaction['splits'] \
-                                if split['account_name'] == account['name'])
+                                   for split in transaction['splits'] \
+                                       if split['account_name'] == account['account_name'])
 
 def show_account(account):
     print('-'*5 + 'Account Information' + '-'*6)
-    print('Name:', account['name'])
+    print('Name:', account['account_name'])
     print('Type:', account['account_type'])
     print('Description:', account['description'])
     print('Balance:', account_balance(account))

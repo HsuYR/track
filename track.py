@@ -29,7 +29,7 @@ def is_valid_transaction(transaction):
         if split['amount'] == 0:
             return False
         # Check the account involved exists
-        if split['account_name'] not in [account['name'] for account in accounts]:
+        if split['account_name'] not in account_names():
             return False
     return True
 
@@ -83,12 +83,15 @@ def account(account_name, account_type, description = ''):
 account_types = ['asset', 'liability', 'equity', 'income', 'expense']
 
 def is_valid_account(account):
-    if account['account_name'] in [account['account_name'] for account in accounts]:
+    if account['account_name'] in account_names():
         return False
     elif account['account_type'] not in account_types:
         return False
     else:
         return True
+
+def account_names():
+    return [account['account_name'] for account in accounts]
 
 def account_balance(account):
     return sum(split['amount'] for transaction in transactions \

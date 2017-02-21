@@ -6,7 +6,6 @@ transactions = []
 accounts = []
 
 
-
 # Each transaction consists of a date, at least two splits which balance,
 # an optional description, and an optional string of tags.
 # tags are words separated by white space.
@@ -109,19 +108,6 @@ def show_account(account):
 def show_accounts():
     for account in accounts:
         show_account(account)
-
-[
-{'name': '資產::流動資產::現金', 'description': ''},
-{'資產::流動資產::存款'},
-{'資產::流動資產::悠遊卡'},
-{'資產::點數紅利::深藏咖啡點數'},
-{'支出::飲食::飲料'},
-{'支出::飲食::早餐'},
-{'支出::飲食::午餐'},
-{'支出::飲食::晚餐'},
-{'支出::飲食::點心'},
-{'收入::工作收入'},
-]
 
 if __name__ == '__main__':
     # initialize accounts

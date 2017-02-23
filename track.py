@@ -70,7 +70,7 @@ def edit_transaction(transaction, index):
 def delete_transaction(index):
     transactions.pop(index)
 
-def show_transaction(transaction):
+def print_transaction(transaction):
     print('-'*5+'Transaction detail:'+'-'*6)
     print('Date: ', transaction['date'])
     print('Description: ', transaction['description'])
@@ -84,9 +84,9 @@ def show_transaction(transaction):
              ' p.s. '+split['description'] if split['description'] else '')
     print('-'*30)
 
-def show_transactions():
+def print_transactions():
     for transaction in transactions:
-        show_transaction(transaction)
+        print_transaction(transaction)
 
 # Each account is a dict and should belong to one of the basic types of accounts:
 # asset, liability, equity, income, or expense.
@@ -119,7 +119,7 @@ def calculate_account_balance(account):
             for split in transaction['splits'] \
                 if split['account_name'] == account['account_name'])
 
-def show_account_detail(account):
+def print_account_detail(account):
     print('-'*5 + 'Account Information' + '-'*6)
     print('Name:', account['account_name'], 'Code:', account['account_code'])
     print('Type:', account['account_type'])
@@ -127,9 +127,9 @@ def show_account_detail(account):
     print('Balance:', calculate_account_balance(account))
     print('-'*30)
 
-def show_accounts_detail():
+def print_accounts_detail():
     for account in accounts:
-        show_account_detail(account)
+        print_account_detail(account)
 
 if __name__ == '__main__':
     # initialize accounts
@@ -161,5 +161,5 @@ if __name__ == '__main__':
     )
     add_transaction(t2)
     print(is_valid_transaction(t2))
-    show_transactions()
-    show_accounts_detail()
+    print_transactions()
+    print_accounts_detail()

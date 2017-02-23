@@ -39,7 +39,7 @@ def is_valid_transaction(transaction):
         if split['amount'] == 0:
             return False
         # Check the account involved exists
-        if split['account_name'] not in list_account_names():
+        if split['account_name'] not in list_account_property('account_name'):
             return False
     return True
 
@@ -90,25 +90,28 @@ def show_transactions():
 
 # Each account is a dict and should belong to one of the basic types of accounts:
 # asset, liability, equity, income, or expense.
-def create_account(account_name, account_type, description = ''):
+def create_account(account_name, account_type, account_code = None, description = ''):
     return {
         'account_name': account_name,
         'account_type': account_type,
+        'account_code': account_code,
         'description': description,
         }
 
 account_types = ['asset', 'liability', 'equity', 'income', 'expense']
 
 def is_valid_account(account):
-    if account['account_name'] in list_account_names():
+    if account['account_name'] in list_account_property('account_name'):
+        return False
+    elif account['account_code'] and account['account_code'] in list_account_property('account_code'):
         return False
     elif account['account_type'] not in account_types:
         return False
     else:
         return True
 
-def list_account_names():
-    return [account['account_name'] for account in accounts]
+def list_account_property(key):
+    return [account[key] for account in accounts]
 
 def calculate_account_balance(account):
     return sum(split['amount']
@@ -118,7 +121,7 @@ def calculate_account_balance(account):
 
 def show_account_detail(account):
     print('-'*5 + 'Account Information' + '-'*6)
-    print('Name:', account['account_name'])
+    print('Name:', account['account_name'], 'Code:', account['account_code'])
     print('Type:', account['account_type'])
     print('Description:', account['description'])
     print('Balance:', calculate_account_balance(account))

@@ -3,11 +3,11 @@
 from datetime import date
 
 
-# journal_entry is a list of all transaction recorded
-journal_entry = []
+# transaction_list is a list of all transaction recorded
+transaction_list = []
 
-# general_ledger is a list of all general_ledger registered
-general_ledger = []
+# account_list is a list of all account registered
+account_list = []
 
 
 # Each transaction consists of a date,
@@ -39,7 +39,7 @@ def is_valid_transaction(transaction):
         if split['amount'] == 0:
             return False
         # Check the account involved exists
-        if split['account_name'] not in list_account_property('account_name'):
+        if split['account_name'] not in get_account_name_list():
             return False
     return True
 
@@ -57,6 +57,13 @@ def print_transaction(transaction):
              ' p.s. '+split['description'] if split['description'] else '')
     print('-'*30)
 
+def involves_account(transaction, account_name):
+    for split in transaction['splits']:
+        if split['account_name'] == account_name:
+            return True
+    else:
+        return False
+
 # Each split has
 # the affected account name,
 # the amount taking effect,
@@ -69,12 +76,25 @@ def create_split(amount, account_name, description = ''):
         'description': description,
         }
 
+def get_all_splits():
+    for transaction in transaction_list:
+        for split in transaction['splits']:
+            yield split
 
-# journal_entry operations
+def get_splits_by_account_name(account_name):
+    for split in get_all_splits():
+        if split['account_name'] == account_name:
+            yield split
+
+def replace_account_name_in_splits(old_name, new_name):
+    for split in get_splits_by_account_name(old_name):
+        split['account_name'] = new_name
+
+# transaction_list operations
 def add_transaction(transaction):
     if is_valid_transaction(transaction):
-        journal_entry.append(transaction)
-        journal_entry.sort(
+        transaction_list.append(transaction)
+        transaction_list.sort(
             key = lambda transaction: transaction['date'],
             reverse = True,
         )
@@ -83,18 +103,18 @@ def add_transaction(transaction):
 
 def edit_transaction(transaction, index):
     if is_valid_transaction(transaction):
-        journal_entry[index] = transaction
+        transaction_list[index] = transaction
     else:
         print('Invalid transaction! Failied')
 
 def delete_transaction(index):
-    journal_entry.pop(index)
+    transaction_list.pop(index)
 
-def print_journal_entry():
-    for transaction in journal_entry:
+def print_transaction_list():
+    for transaction in transaction_list:
         print_transaction(transaction)
 
-# Each account is a dict and should belong to one of the basic types of general_ledger:
+# Each account is a dict and should belong to one of the basic types of account_list:
 # asset, liability, equity, income, or expense.
 def create_account(account_name, account_type, account_code = None, description = ''):
     return {
@@ -107,9 +127,9 @@ def create_account(account_name, account_type, account_code = None, description 
 account_types = ['asset', 'liability', 'equity', 'income', 'expense']
 
 def is_valid_account(account):
-    if account['account_name'] in list_account_property('account_name'):
+    if account['account_name'] in get_account_name_list():
         return False
-    elif account['account_code'] and account['account_code'] in list_account_property('account_code'):
+    elif account['account_code'] and account['account_code'] in get_account_code_list():
         return False
     elif account['account_type'] not in account_types:
         return False
@@ -118,7 +138,7 @@ def is_valid_account(account):
 
 def calculate_account_balance(account):
     return sum(split['amount']
-        for transaction in journal_entry \
+        for transaction in transaction_list \
             for split in transaction['splits'] \
                 if split['account_name'] == account['account_name'])
 
@@ -131,31 +151,59 @@ def print_account_detail(account):
     print('-'*30)
 
 
-# general_ledger operations
-def list_account_property(key):
-    return [account[key] for account in general_ledger]
+# account_list operations
+def get_account_name_list():
+    for account in account_list:
+        yield account['account_name']
+
+def get_account_code_list():
+    for account in account_list:
+        yield account['account_code']
 
 def add_account(account):
     if is_valid_account(account):
-        general_ledger.append(account)
-        general_ledger.sort(
+        account_list.append(account)
+        account_list.sort(
             key = lambda account: account['account_name']
         )
     else:
         print('Invalid Account!')
 
-def edit_account(account, index):
-    pass
+def edit_account(account_name, new_account):
+    if is_valid_account(new_account):
+        if new_account['account_name'] != account_name:
+            replace_account_name_in_splits(account_name, new_account['name'])
+        account_list[index] = new_account
+        account_list.sort(
+            key = lambda new_account: new_account['account_name']
+        )
+    else:
+        print('Invalid Account!')
 
-def delete_account(index):
-    pass
+def delete_account(account_name, move_to_account_name = 'Imbalance'):
+    deleting_account_name = account_name
+    if move_to_account_name == 'Imbalance' and 'Imbalance' not in get_account_name_list():
+        add_account(create_account('Imbalance', 'equity'))
+    if move_to_account_name in get_account_name_list():
+        replace_account_name_in_splits(account_name, move_to_account_name)
+        account_list.pop([get_account_name_list].index(account_name))
+    # delete related transaction when move_to_account_name is None
+    elif move_to_account_name is None:
+        new_transaction_list = []
+        for transaction in transaction_list:
+            if not involves_account(transaction, deleting_account_name):
+                new_transaction_list.append(transaction)
+        transaction_list = new_transaction_list
+        account_list.pop([get_account_name_list].index(account_name))
+    else:
+        print('Invalid new account name!')
 
-def print_general_ledger_detail():
-    for account in general_ledger:
+def print_account_list_detail():
+    for account in account_list:
         print_account_detail(account)
 
 if __name__ == '__main__':
-    # initialize general_ledger
+    # initialize account_list
     add_account(create_account('資產::流動資產::現金', 'asset'))
     add_account(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
     add_account(create_account('支出::飲食::飲料', 'expense'))
@@ -186,5 +234,5 @@ if __name__ == '__main__':
     )
     add_transaction(t2)
     print(is_valid_transaction(t2))
-    print_journal_entry()
-    print_general_ledger_detail()
+    print_transaction_list()
+    print_account_list_detail()

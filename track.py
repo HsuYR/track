@@ -3,11 +3,11 @@
 from datetime import date
 
 
-# transactions is a list of all transaction recorded
-transactions = []
+# journal_entry is a list of all transaction recorded
+journal_entry = []
 
-# accounts is a list of all accounts registered
-accounts = []
+# general_ledger is a list of all general_ledger registered
+general_ledger = []
 
 
 # Each transaction consists of a date,
@@ -43,33 +43,6 @@ def is_valid_transaction(transaction):
             return False
     return True
 
-# Each split has
-# the affected account name,
-# the amount taking effect,
-# is either Dr. or Cr., represented by positive or negative amount respectively,
-# and an optional description.
-def create_split(amount, account_name, description = ''):
-    return {
-        'amount': amount,
-        'account_name': account_name,
-        'description': description,
-        }
-
-def add_transaction(transaction):
-    if is_valid_transaction(transaction):
-        transactions.append(transaction)
-    else:
-        print('Invalid transaction!')
-
-def edit_transaction(transaction, index):
-    if is_valid_transaction(transaction):
-        transactions[index] = transaction
-    else:
-        print('Invalid transaction! Failied')
-
-def delete_transaction(index):
-    transactions.pop(index)
-
 def print_transaction(transaction):
     print('-'*5+'Transaction detail:'+'-'*6)
     print('Date: ', transaction['date'])
@@ -84,11 +57,40 @@ def print_transaction(transaction):
              ' p.s. '+split['description'] if split['description'] else '')
     print('-'*30)
 
-def print_transactions():
-    for transaction in transactions:
+# Each split has
+# the affected account name,
+# the amount taking effect,
+# is either Dr. or Cr., represented by positive or negative amount respectively,
+# and an optional description.
+def create_split(amount, account_name, description = ''):
+    return {
+        'amount': amount,
+        'account_name': account_name,
+        'description': description,
+        }
+
+
+# journal_entry operations
+def add_transaction(transaction):
+    if is_valid_transaction(transaction):
+        journal_entry.append(transaction)
+    else:
+        print('Invalid transaction!')
+
+def edit_transaction(transaction, index):
+    if is_valid_transaction(transaction):
+        journal_entry[index] = transaction
+    else:
+        print('Invalid transaction! Failied')
+
+def delete_transaction(index):
+    journal_entry.pop(index)
+
+def print_journal_entry():
+    for transaction in journal_entry:
         print_transaction(transaction)
 
-# Each account is a dict and should belong to one of the basic types of accounts:
+# Each account is a dict and should belong to one of the basic types of general_ledger:
 # asset, liability, equity, income, or expense.
 def create_account(account_name, account_type, account_code = None, description = ''):
     return {
@@ -110,15 +112,6 @@ def is_valid_account(account):
     else:
         return True
 
-def list_account_property(key):
-    return [account[key] for account in accounts]
-
-def calculate_account_balance(account):
-    return sum(split['amount']
-        for transaction in transactions \
-            for split in transaction['splits'] \
-                if split['account_name'] == account['account_name'])
-
 def print_account_detail(account):
     print('-'*5 + 'Account Information' + '-'*6)
     print('Name:', account['account_name'], 'Code:', account['account_code'])
@@ -127,15 +120,26 @@ def print_account_detail(account):
     print('Balance:', calculate_account_balance(account))
     print('-'*30)
 
-def print_accounts_detail():
-    for account in accounts:
+
+# general_ledger operations
+def list_account_property(key):
+    return [account[key] for account in general_ledger]
+
+def calculate_account_balance(account):
+    return sum(split['amount']
+        for transaction in journal_entry \
+            for split in transaction['splits'] \
+                if split['account_name'] == account['account_name'])
+
+def print_general_ledger_detail():
+    for account in general_ledger:
         print_account_detail(account)
 
 if __name__ == '__main__':
-    # initialize accounts
-    accounts.append(create_account('資產::流動資產::現金', 'asset'))
-    accounts.append(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
-    accounts.append(create_account('支出::飲食::飲料', 'expense'))
+    # initialize general_ledger
+    general_ledger.append(create_account('資產::流動資產::現金', 'asset'))
+    general_ledger.append(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
+    general_ledger.append(create_account('支出::飲食::飲料', 'expense'))
 
 
     t1 = create_transaction(
@@ -161,5 +165,5 @@ if __name__ == '__main__':
     )
     add_transaction(t2)
     print(is_valid_transaction(t2))
-    print_transactions()
-    print_accounts_detail()
+    print_journal_entry()
+    print_general_ledger_detail()

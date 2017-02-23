@@ -135,17 +135,32 @@ def print_account_detail(account):
 def list_account_property(key):
     return [account[key] for account in general_ledger]
 
+def add_account(account):
+    if is_valid_account(account):
+        general_ledger.append(account)
+        general_ledger.sort(
+            key = lambda account: account['account_name']
+        )
+    else:
+        print('Invalid Account!')
+
+def edit_account(account, index):
+    pass
+
+def delete_account(index):
+    pass
+
 def print_general_ledger_detail():
     for account in general_ledger:
         print_account_detail(account)
 
 if __name__ == '__main__':
     # initialize general_ledger
-    general_ledger.append(create_account('資產::流動資產::現金', 'asset'))
-    general_ledger.append(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
-    general_ledger.append(create_account('支出::飲食::飲料', 'expense'))
-    general_ledger.append(create_account('支出::飲食::晚餐', 'expense'))
-    general_ledger.append(create_account('資產::流動資產::悠遊卡', 'asset'))
+    add_account(create_account('資產::流動資產::現金', 'asset'))
+    add_account(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
+    add_account(create_account('支出::飲食::飲料', 'expense'))
+    add_account(create_account('支出::飲食::晚餐', 'expense'))
+    add_account(create_account('資產::流動資產::悠遊卡', 'asset'))
 
 
     t1 = create_transaction(

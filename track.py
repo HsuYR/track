@@ -74,6 +74,10 @@ def create_split(amount, account_name, description = ''):
 def add_transaction(transaction):
     if is_valid_transaction(transaction):
         journal_entry.append(transaction)
+        journal_entry.sort(
+            key = lambda transaction: transaction['date'],
+            reverse = True,
+        )
     else:
         print('Invalid transaction!')
 
@@ -140,10 +144,12 @@ if __name__ == '__main__':
     general_ledger.append(create_account('資產::流動資產::現金', 'asset'))
     general_ledger.append(create_account('資產::點數紅利::深藏咖啡點數', 'asset'))
     general_ledger.append(create_account('支出::飲食::飲料', 'expense'))
+    general_ledger.append(create_account('支出::飲食::晚餐', 'expense'))
+    general_ledger.append(create_account('資產::流動資產::悠遊卡', 'asset'))
 
 
     t1 = create_transaction(
-        date.today(),
+        date(2017, 1, 20),
         [
         create_split(-60, '資產::流動資產::現金'),
         create_split(54, '支出::飲食::飲料', '深藏咖啡'),

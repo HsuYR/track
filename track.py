@@ -116,6 +116,12 @@ def is_valid_account(account):
     else:
         return True
 
+def calculate_account_balance(account):
+    return sum(split['amount']
+        for transaction in journal_entry \
+            for split in transaction['splits'] \
+                if split['account_name'] == account['account_name'])
+
 def print_account_detail(account):
     print('-'*5 + 'Account Information' + '-'*6)
     print('Name:', account['account_name'], 'Code:', account['account_code'])
@@ -128,12 +134,6 @@ def print_account_detail(account):
 # general_ledger operations
 def list_account_property(key):
     return [account[key] for account in general_ledger]
-
-def calculate_account_balance(account):
-    return sum(split['amount']
-        for transaction in journal_entry \
-            for split in transaction['splits'] \
-                if split['account_name'] == account['account_name'])
 
 def print_general_ledger_detail():
     for account in general_ledger:

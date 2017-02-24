@@ -116,12 +116,13 @@ def print_transaction_list():
 
 # Each account is a dict and should belong to one of the basic types of account_list:
 # asset, liability, equity, income, or expense.
-def create_account(account_name, account_type, account_code = None, description = ''):
+def create_account(account_name, account_type, account_code = None, description = '', hidden = False):
     return {
         'account_name': account_name,
         'account_type': account_type,
         'account_code': account_code,
         'description': description,
+        'hidden': hidden,
         }
 
 account_types = ['asset', 'liability', 'equity', 'income', 'expense']

@@ -1,45 +1,72 @@
+''' Track
+    A Simple Bookkeeping Module
+
+'''
 # Written in Python 3
 
-import shelve
-from datetime import date
-import uuid
+import sqlite3
+import os
+from datetime import datetime
 
+class Book:
+    'A book for bookkeeping'
 
-class Trackbook:
-
-    def __init__(self):
-        with shelve.open('config_shelve') as config:
-            if 'account_types' not in config:
-                config['account_types'] = ['asset', 'liability', 'equity', 'income', 'expense']
-            if 'accounts_filename' not in config:
-                config['accounts_filename'] = 'accounts_shelve'
-            if 'transactions_filename' not in config:
-                config['transactions_filename'] = 'transactions_filename'
-            self.account_types = config['account_types']
-            self.accounts_filename = config['accounts_filename']
-            self.transactions_filename = config['transactions_filename']
+    def __init__(self, database_name):
+        'Open existing database, create if not exist'
+        self.database_name = database_name
+        if os.path.exists(database_name):
+            print('Database found.')
+        else:
+            print('Database does not exist, initializing new database.')
+            conn = sqlite3.connect(self.database_name)
+            with conn:
+                c = conn.cursor()
+                c.execute('''CREATE TABLE IF NOT EXISTS accounts (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT UNIQUE NOT NULL,
+                    type_id INTEGER NOT NULL,
+                    description TEXT,
+                    hidden INTEGER NOT NULL,
+                    FOREIGN KEY (type_id) REFERENCES account_types(id)
+                    );''')
+                c.execute('''CREATE TABLE IF NOT EXISTS account_types(
+                    id INTEGER PRIMARY KEY,
+                    type TEXT UNIQUE NOT NULL
+                    );''')
+                c.executemany('''INSERT INTO account_types (type) VALUES (?);''',
+                    [('asset',), ('liability',), ('equity',), ('income',), ('expense',)])
+                c.execute('''CREATE TABLE IF NOT EXISTS transactions(
+                    id INTEGER PRIMARY KEY,
+                    date TEXT NOT NULL,
+                    description TEXT
+                    );''')
+                c.execute('''CREATE TABLE IF NOT EXISTS splits(
+                    transaction_id INTEGER NOT NULL,
+                    account_id INTEGER NOT NULL,
+                    amount REAL NOT NULL,
+                    description TEXT,
+                    FOREIGN KEY (transaction_id) REFERENCES transactions(id),
+                    FOREIGN KEY (account_id) REFERENCES accounts(id)
+                    );''')
+            print('New database created.')
 
     #
     # Account
     #
-    # Account name is the key for account detail dict
-    #
-    # Account type fall into one of the basic types:
-    # asset, liability, equity, income, or expense.
+    # Account type falls into one of the basic types:
+    # assets, liability, equity, income, or expense.
     #
     # description is optional and hidden defaults to False
-    def insert_account(self, name, detail):
-        accounts = shelve.open(self.accounts_filename)
-        if name in accounts:
-            raise ValueError('Account name already exists')
-        if detail['type'] not in self.account_types:
-            raise ValueError('Invalid account type')
-        if 'description' not in detail:
-            detail['description'] = ''
-        if 'hidden' not in detail:
-            detail['hidden'] = False
-        accounts[name] = detail
-        accounts.close()
+    def add_account(self, name, account_type, description = '', hidden = False):
+        conn = sqlite3.connect(self.database_name)
+        with conn:
+            c = conn.cursor()
+            c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
+            type_id = c.fetchone()[0]
+            c.execute(
+            'INSERT INTO accounts (name, type_id, description, hidden) VALUES (?,?,?,?)',
+            (name, type_id, description, hidden)
+             )
 
     def update_account(self, name, **kwargs):
         accounts = shelve.open(self.accounts_filename)

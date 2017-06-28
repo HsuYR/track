@@ -60,17 +60,26 @@ class Book:
     def add_account(self, name, type_id, description = '', hidden = False):
         conn = sqlite3.connect(self.database_name)
         with conn:
+            c = conn.cursor()
             c.execute(
-            'INSERT INTO accounts (name, type_id, description, hidden) VALUES (?,?,?,?)',
+            'INSERT INTO accounts (name, type_id, description, hidden) VALUES (?,?,?,?);',
             (name, type_id, description, hidden)
              )
 
     def update_account(self, account_id, **kwargs):
         conn = sqlite3.connect(self.database_name)
         with conn:
-            for key, value in **kwargs.items():
-                c.execute('UPDATE accounts SET ?=? WHERE id=?', (key, value, account_id))
-
+            c = conn.cursor()
+            for key, value in kwargs.items():
+                if key == 'name':
+                    c.execute('UPDATE accounts SET name=? WHERE id=?;', (value, account_id))
+                elif key == 'type_id':
+                    c.execute('UPDATE accounts SET type_id=? WHERE id=?;', (value, account_id))
+                elif key == 'description':
+                    c.execute('UPDATE accounts SET description=? WHERE id=?;', (value, account_id))
+                elif key == 'hidden':
+                    c.execute('UPDATE accounts SET hidden=? WHERE id=?;', (value, account_id))
+'''
     def del_account(self, name, move_to_name = 'Imbalance'):
         accounts = shelve.open(self.accounts_filename)
         if len([self.get_splits(name)]):
@@ -86,16 +95,6 @@ class Book:
                         if not self.involves_account(transaction, name)]
                 print('Transacitons deleted.')
         del accounts[name]
-        accounts.close()
-
-    def rename_account(self, old_name, new_name):
-        accounts = shelve.open(self.accounts_filename)
-        if new_name not in accounts:
-            accounts[new_name] = accounts[old_name]
-            self.rename_account_in_splits(old_name, new_name)
-            del accounts[old_name]
-        else:
-            raise ValueError('Account name already exists')
         accounts.close()
 
     def show_account(self, name, verbose = False):
@@ -125,16 +124,6 @@ class Book:
             c = conn.cursor()
             c.execute('SELECT (id) FROM accounts WHERE name=?', (name,))
             return c.fetchone()[0]
-
-    def is_valid_account(self, name, detail):
-        accounts = shelve.open(self.accounts_filename)
-        if name in accounts:
-            return False
-        elif detail['type'] not in self.account_types:
-            return False
-        else:
-            return True
-        accounts.close()
 
     def get_account_balance(self, name):
         return sum(split['amount'] for split in self.get_splits(name))
@@ -224,3 +213,4 @@ class Book:
             'account_name': account_name,
             'description': description,
             }
+'''

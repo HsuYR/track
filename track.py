@@ -13,14 +13,14 @@ class Book:
 
     def __init__(self, database_name):
         'Open existing database, create if not exist'
-        self.database_name = database_name
         if os.path.exists(database_name):
             print('Database found.')
+            self.conn = sqlite3.connect(database_name)
         else:
             print('Database does not exist, initializing new database.')
-            conn = sqlite3.connect(self.database_name)
-            with conn:
-                c = conn.cursor()
+            self.conn = sqlite3.connect(database_name)
+            with self.conn:
+                c = self.conn.cursor()
                 c.execute('''CREATE TABLE IF NOT EXISTS accounts (
                     id INTEGER PRIMARY KEY,
                     name TEXT UNIQUE NOT NULL,
@@ -58,18 +58,16 @@ class Book:
     #
     # description is optional and hidden defaults to False
     def add_account(self, name, type_id, description = '', hidden = False):
-        conn = sqlite3.connect(self.database_name)
-        with conn:
-            c = conn.cursor()
+        with self.conn:
+            c = self.conn.cursor()
             c.execute(
             'INSERT INTO accounts (name, type_id, description, hidden) VALUES (?,?,?,?);',
             (name, type_id, description, hidden)
              )
 
     def update_account(self, account_id, **kwargs):
-        conn = sqlite3.connect(self.database_name)
-        with conn:
-            c = conn.cursor()
+        with self.conn:
+            c = self.conn.cursor()
             for key, value in kwargs.items():
                 if key == 'name':
                     c.execute('UPDATE accounts SET name=? WHERE id=?;', (value, account_id))

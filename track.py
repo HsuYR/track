@@ -65,22 +65,11 @@ class Book:
             (name, type_id, description, hidden)
              )
 
-    def update_account(self, name, **kwargs):
-        accounts = shelve.open(self.accounts_filename)
-        for key in kwargs:
-            if key == 'name':
-                if kwargs[key] not in accounts:
-                    self.rename_account(name, kwargs[key])
-            elif key == 'type':
-                if kwargs[key] in self.account_types:
-                    a = accounts[name]
-                    a[key] = kwargs[key]
-                    accounts[name] = a
-            else:
-                a = accounts[name]
-                a[key] = kwargs[key]
-                accounts[name] = a
-        accounts.close()
+    def update_account(self, account_id, **kwargs):
+        conn = sqlite3.connect(self.database_name)
+        with conn:
+            for key, value in **kwargs.items():
+                c.execute('UPDATE accounts SET ?=? WHERE id=?', (key, value, account_id))
 
     def del_account(self, name, move_to_name = 'Imbalance'):
         accounts = shelve.open(self.accounts_filename)

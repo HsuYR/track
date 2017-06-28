@@ -57,12 +57,9 @@ class Book:
     # assets, liability, equity, income, or expense.
     #
     # description is optional and hidden defaults to False
-    def add_account(self, name, account_type, description = '', hidden = False):
+    def add_account(self, name, type_id, description = '', hidden = False):
         conn = sqlite3.connect(self.database_name)
         with conn:
-            c = conn.cursor()
-            c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
-            type_id = c.fetchone()[0]
             c.execute(
             'INSERT INTO accounts (name, type_id, description, hidden) VALUES (?,?,?,?)',
             (name, type_id, description, hidden)
@@ -126,6 +123,20 @@ class Book:
     #
     # other account functions
     #
+    def account_type_id(self, account_type):
+        conn = sqlite3.connect(self.database_name)
+        with conn:
+            c = conn.cursor()
+            c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
+            return c.fetchone()[0]
+
+    def account_id(self, name):
+        conn = sqlite3.connect(self.database_name)
+        with conn:
+            c = conn.cursor()
+            c.execute('SELECT (id) FROM accounts WHERE name=?', (name,))
+            return c.fetchone()[0]
+
     def is_valid_account(self, name, detail):
         accounts = shelve.open(self.accounts_filename)
         if name in accounts:

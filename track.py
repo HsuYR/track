@@ -37,7 +37,7 @@ class Book:
                     [('asset',), ('liability',), ('equity',), ('income',), ('expense',)])
                 c.execute('''CREATE TABLE IF NOT EXISTS transactions(
                     id INTEGER PRIMARY KEY,
-                    date TEXT NOT NULL,
+                    date DATE NOT NULL,
                     description TEXT
                     );''')
                 c.execute('''CREATE TABLE IF NOT EXISTS splits(

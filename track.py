@@ -69,14 +69,8 @@ class Book:
         with self.conn:
             c = self.conn.cursor()
             for key, value in kwargs.items():
-                if key == 'name':
-                    c.execute('UPDATE accounts SET name=? WHERE id=?;', (value, account_id))
-                elif key == 'type_id':
-                    c.execute('UPDATE accounts SET type_id=? WHERE id=?;', (value, account_id))
-                elif key == 'description':
-                    c.execute('UPDATE accounts SET description=? WHERE id=?;', (value, account_id))
-                elif key == 'hidden':
-                    c.execute('UPDATE accounts SET hidden=? WHERE id=?;', (value, account_id))
+                if key in ['name', 'type_id', 'description', 'hidden']:
+                    c.execute('UPDATE accounts SET %s=? WHERE id=?;' % key, (value, account_id))
 '''
     def del_account(self, name, move_to_name = 'Imbalance'):
         accounts = shelve.open(self.accounts_filename)

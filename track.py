@@ -71,7 +71,7 @@ class Book:
             for key, value in kwargs.items():
                 if key in ['name', 'type_id', 'description', 'hidden']:
                     c.execute('UPDATE accounts SET %s=? WHERE id=?;' % key, (value, account_id))
-'''
+
     def del_account(self, name, move_to_name = 'Imbalance'):
         accounts = shelve.open(self.accounts_filename)
         if len([self.get_splits(name)]):
@@ -82,7 +82,6 @@ class Book:
             else:
                 print('Deleting associated transactions.')
                 transactions = shelve.open(self.transactions_filename)
-                transactions = [transaction
                     for transaction in transactions:
                         if not self.involves_account(transaction, name)]
                 print('Transacitons deleted.')
@@ -205,4 +204,3 @@ class Book:
             'account_name': account_name,
             'description': description,
             }
-'''

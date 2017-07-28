@@ -41,7 +41,7 @@ class Book:
                     type TEXT UNIQUE NOT NULL
                     );''')
                 c.executemany('''INSERT INTO account_types (type) VALUES (?);''',
-                    [('asset',), ('liability',), ('equity',), ('income',), ('expense',)])
+                    [('ASSET',), ('LIABILITY',), ('EQUITY',), ('INCOME',), ('EXPENSE',)])
                 c.execute('''CREATE TABLE IF NOT EXISTS transactions(
                     id INTEGER PRIMARY KEY,
                     date DATE NOT NULL,

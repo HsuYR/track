@@ -88,16 +88,13 @@ class Book:
         del accounts[name]
         accounts.close()
 
-    def show_account(self, name, verbose = False):
-        accounts = shelve.open(self.accounts_filename)
-        print('-'*5 + 'Account Information' + '-'*6)
-        print('Name:', name)
-        print('Type:', accounts[name]['type'])
-        print('Description:', accounts[name]['description'])
-        print('Hidden:', accounts[name]['hidden'])
-        print('Balance:', self.get_account_balance(name))
-        print('-'*30)
-        accounts.close()
+    def account(self, account_id):
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT * FROM accounts WHERE id=?', (account_id,))
+            cols = ['account_id', 'name', 'type_id', 'description', 'hidden']
+            account = dict(zip(cols, c.fetchone()))
+            return account
 
     #
     # other account functions

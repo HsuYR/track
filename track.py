@@ -64,7 +64,7 @@ class Book:
     # assets, liability, equity, income, or expense.
     #
     # description is optional and hidden defaults to False
-    def add_account(self, name, type_id, description = '', hidden = False):
+    def insert_account(self, name, type_id, description = '', hidden = False):
         with self.conn:
             c = self.conn.cursor()
             c.execute(
@@ -95,7 +95,7 @@ class Book:
         del accounts[name]
         accounts.close()
 
-    def account(self, account_id):
+    def select_account_by_id(self, account_id):
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT * FROM accounts WHERE id=?', (account_id,))

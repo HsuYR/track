@@ -15,6 +15,8 @@ class Book:
         'Open existing database'
         if os.path.exists(database_name):
             self.conn = sqlite3.connect(database_name)
+        else:
+            raise FileNotFoundError
 
 
     @classmethod

@@ -60,11 +60,21 @@ class Book:
     #
     # Account
     #
-    # Account type falls into one of the basic types:
-    # assets, liability, equity, income, or expense.
+    # account detail is a dict with key:
+    # name, type_id, [description, hidden]
+    # in which description is optional and hidden defaults to False
     #
-    # description is optional and hidden defaults to False
-    def insert_account(self, name, type_id, description = '', hidden = False):
+    # Account type falls into one of the basic types:
+    # ASSET, LIABILITY, EQUITY, INCOME, or EXPENSE
+    # with type_id 1, 2, 3, 4, 5 respectively.
+    #
+    def insert_account(self, account_detail):
+        name = account_detail['name']
+        type_id = account_detail['type_id']
+        if 'description' not in account_detail:
+            description = ''
+        if 'hidden' not in account_detail:
+            hidden = False
         with self.conn:
             c = self.conn.cursor()
             c.execute(
@@ -72,10 +82,10 @@ class Book:
             (name, type_id, description, hidden)
              )
 
-    def update_account(self, account_id, **kwargs):
+    def update_account(self, account_id, account_detail):
         with self.conn:
             c = self.conn.cursor()
-            for key, value in kwargs.items():
+            for key, value in account_detail.items():
                 if key in ['name', 'type_id', 'description', 'hidden']:
                     c.execute('UPDATE accounts SET %s=? WHERE id=?;' % key, (value, account_id))
 
@@ -95,7 +105,7 @@ class Book:
         del accounts[name]
         accounts.close()
 
-    def select_account_by_id(self, account_id):
+    def account_detail_by_id(self, account_id):
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT * FROM accounts WHERE id=?', (account_id,))

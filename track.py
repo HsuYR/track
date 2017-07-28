@@ -189,8 +189,8 @@ class Book:
     def delete_transaction(self, transaction_id):
         with self.conn:
             c = self.conn.cursor()
-            c.execute('DELETE FROM transactions WHERE id=?', (transaction_id,))
             c.execute('DELETE FROM splits WHERE transaction_id=?', (transaction_id,))
+            c.execute('DELETE FROM transactions WHERE id=?', (transaction_id,))
 
     def show_transaction(self, transaction):
         print('-'*5+'Transaction detail:'+'-'*6)

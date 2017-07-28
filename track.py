@@ -82,8 +82,8 @@ class Book:
             else:
                 print('Deleting associated transactions.')
                 transactions = shelve.open(self.transactions_filename)
-                    for transaction in transactions:
-                        if not self.involves_account(transaction, name)]
+                    #for transaction in transactions:
+                    #    if not self.involves_account(transaction, name)]
                 print('Transacitons deleted.')
         del accounts[name]
         accounts.close()
@@ -96,15 +96,11 @@ class Book:
             account = dict(zip(cols, c.fetchone()))
             return account
 
-    #
-    # other account functions
-    #
     def account_type_id(self, account_type):
-        conn = sqlite3.connect(self.database_name)
-        with conn:
-            c = conn.cursor()
+        with self.conn:
+            c = self.conn.cursor()
             c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
-            return c.fetchone()[0]
+        return c.fetchone()[0]
 
     def account_id(self, name):
         conn = sqlite3.connect(self.database_name)

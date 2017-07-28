@@ -161,6 +161,7 @@ class Book:
     def insert_transaction(self, transaction_detail):
         with self.conn:
             c = self.conn.cursor()
+            c.execute('PRAGMA foreign_keys = ON')
             if 'date' not in transaction_detail:
                 transaction_detail['date'] = datetime.date.today()
             if 'description' not in transaction_detail:
@@ -168,11 +169,7 @@ class Book:
 
             if sum(split['amount'] for split in transaction_detail['splits']) != 0:
                 raise ValueError('Total debit and credit amount should balance')
-            c.execute('SELECT id FROM accounts')
-            accounts_id = [row[0] for row in c.fetchall()]
             for split in transaction_detail['splits']:
-                if split['account_id'] not in accounts_id:
-                    raise ValueError('Account does not exists')
                 if 'description' not in split:
                     split['description'] = ''
             c.execute('INSERT INTO transactions (date, description) VALUES (?, ?)',

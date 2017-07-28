@@ -15,6 +15,7 @@ class Book:
         'Open existing database'
         if os.path.exists(database_name):
             self.conn = sqlite3.connect(database_name)
+            self.conn.execute('PRAGMA foreign_keys = ON')
         else:
             raise FileNotFoundError
 
@@ -48,6 +49,7 @@ class Book:
                     description TEXT
                     );''')
                 c.execute('''CREATE TABLE IF NOT EXISTS splits(
+                    id INTEGER PRIMARY KEY,
                     transaction_id INTEGER NOT NULL,
                     account_id INTEGER NOT NULL,
                     amount REAL NOT NULL,
@@ -161,35 +163,33 @@ class Book:
     def insert_transaction(self, transaction_detail):
         with self.conn:
             c = self.conn.cursor()
-            c.execute('PRAGMA foreign_keys = ON')
+
             if 'date' not in transaction_detail:
                 transaction_detail['date'] = datetime.date.today()
             if 'description' not in transaction_detail:
                 transaction_detail['description'] = ''
 
-            if sum(split['amount'] for split in transaction_detail['splits']) != 0:
-                raise ValueError('Total debit and credit amount should balance')
-            for split in transaction_detail['splits']:
-                if 'description' not in split:
-                    split['description'] = ''
+            Book.check_split_sum(transaction_detail['splits'])
             c.execute('INSERT INTO transactions (date, description) VALUES (?, ?)',
             (transaction_detail['date'], transaction_detail['description'])
             )
             transaction_id = c.lastrowid
-            for split in transaction_detail['splits']:
-                c.execute(
-                'INSERT INTO splits (transaction_id, account_id, amount, description) VALUES (?, ?, ?, ?)',
-                (transaction_id, split['account_id'], split['amount'], split['description'])
-                )
+            self.write_splits(transaction_id, transaction_detail['splits'])
 
-    def edit_transaction(self, index, key, value):
-        transaction = self.transactions[index].copy()
-        transaction[key] = value
-        if self.is_valid_transaction(transaction):
-            self.transactions[index] = transaction
+    def update_transaction(self, transaction_id, transaction_detail):
+        with self.conn:
+            c = self.conn.cursor()
+            for key, value in transaction_detail.items():
+                if key in ['date', 'description']:
+                    c.execute('UPDATE transactions SET %s WHERE id=?' % key, (value, ))
+                elif key == 'splits':
+                    Book.check_split_sum(value)
+                    self.write_splits(transaction_id, value)
 
-    def delete_transaction(self, index):
-        del self.transactions[index]
+    def delete_transaction(self, transaction_id):
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('DELETE FROM transactions WHERE id=?', (transaction_id,))
 
     def show_transaction(self, transaction):
         print('-'*5+'Transaction detail:'+'-'*6)
@@ -217,3 +217,22 @@ class Book:
             'account_name': account_name,
             'description': description,
             }
+
+    @staticmethod
+    def check_split_sum(splits):
+        if sum(split['amount'] for split in splits) != 0:
+            raise ValueError('Total debit and credit amount should balance')
+
+    def write_splits(self, transaction_id, splits):
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT COUNT(*) FROM splits WHERE transaction_id=?', (transaction_id,))
+            if c.fetchone()[0]:
+                c.execute('DELETE FROM splits WHERE transaction_id=?', (transaction_id,))
+            for split in splits:
+                if 'description' not in split:
+                    split['description'] = ''
+                c.execute(
+                'INSERT INTO splits (transaction_id, account_id, amount, description) VALUES (?, ?, ?, ?)',
+                (transaction_id, split['account_id'], split['amount'], split['description'])
+                )

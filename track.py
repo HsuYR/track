@@ -6,7 +6,7 @@
 
 import sqlite3
 import os
-from datetime import datetime
+import datetime
 
 class Book:
     'A book for bookkeeping'
@@ -154,30 +154,36 @@ class Book:
     #
     # Transaction
     #
-    # Each transaction consists of a date,
+    # Each transaction is a dict consists of
+    # a date, which would be default to today,
     # at least two splits which balance,
-    # an optional description,
-    # and an optional string of tags.
-    # tags are words separated by white space.
-    def add_transaction(self, transaction):
-        if 'date' not in transaction:
-            transaction['date'] = date.today()
-        if 'description' not in transaction:
-            transaction['description'] = ''
-        if 'tags' not in transaction:
-            transaction['tags'] = ''
-        if sum(split['amount'] for split in transaction['splits']) != 0:
-            raise ValueError('Total debit and credit amount should balance')
-        accounts = shelve.open(self.accounts_filename)
-        for split in transaction['splits']:
-            if split['account_name'] not in accounts:
-                raise ValueError('Account name does not exists')
-            if 'description' not in split:
-                split['description'] = ''
-        accounts.close()
-        transactions = shelve.open(self.transactions_filename)
-        transactions[str(uuid.uuid4())] = transaction
-        transactions.close()
+    # and an optional description
+    def insert_transaction(self, transaction_detail):
+        with self.conn:
+            c = self.conn.cursor()
+            if 'date' not in transaction_detail:
+                transaction_detail['date'] = datetime.date.today()
+            if 'description' not in transaction_detail:
+                transaction_detail['description'] = ''
+
+            if sum(split['amount'] for split in transaction_detail['splits']) != 0:
+                raise ValueError('Total debit and credit amount should balance')
+            c.execute('SELECT id FROM accounts')
+            accounts_id = [row[0] for row in c.fetchall()]
+            for split in transaction_detail['splits']:
+                if split['account_id'] not in accounts_id:
+                    raise ValueError('Account does not exists')
+                if 'description' not in split:
+                    split['description'] = ''
+            c.execute('INSERT INTO transactions (date, description) VALUES (?, ?)',
+            (transaction_detail['date'], transaction_detail['description'])
+            )
+            transaction_id = c.lastrowid
+            for split in transaction_detail['splits']:
+                c.execute(
+                'INSERT INTO splits (transaction_id, account_id, amount, description) VALUES (?, ?, ?, ?)',
+                (transaction_id, split['account_id'], split['amount'], split['description'])
+                )
 
     def edit_transaction(self, index, key, value):
         transaction = self.transactions[index].copy()

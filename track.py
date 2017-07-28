@@ -12,15 +12,20 @@ class Book:
     'A book for bookkeeping'
 
     def __init__(self, database_name):
-        'Open existing database, create if not exist'
+        'Open existing database'
         if os.path.exists(database_name):
-            print('Database found.')
             self.conn = sqlite3.connect(database_name)
+
+
+    @classmethod
+    def new(cls, database_name):
+        'Create new database'
+        if os.path.exists(database_name):
+            raise FileExistsError
         else:
-            print('Database does not exist, initializing new database.')
-            self.conn = sqlite3.connect(database_name)
-            with self.conn:
-                c = self.conn.cursor()
+            conn = sqlite3.connect(database_name)
+            with conn:
+                c = conn.cursor()
                 c.execute('''CREATE TABLE IF NOT EXISTS accounts (
                     id INTEGER PRIMARY KEY,
                     name TEXT UNIQUE NOT NULL,
@@ -48,7 +53,7 @@ class Book:
                     FOREIGN KEY (transaction_id) REFERENCES transactions(id),
                     FOREIGN KEY (account_id) REFERENCES accounts(id)
                     );''')
-            print('New database created.')
+        return Book(database_name)
 
     #
     # Account

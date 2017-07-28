@@ -55,7 +55,7 @@ class Book:
                     FOREIGN KEY (transaction_id) REFERENCES transactions(id),
                     FOREIGN KEY (account_id) REFERENCES accounts(id)
                     );''')
-        return Book(database_name)
+        return cls(database_name)
 
     #
     # Account

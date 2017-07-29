@@ -149,12 +149,6 @@ class Book:
             c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
         return c.fetchone()['id']
 
-    def account_id(self, name):
-        conn = sqlite3.connect(self.database_name)
-        with conn:
-            c = conn.cursor()
-            c.execute('SELECT (id) FROM accounts WHERE name=?', (name,))
-            return c.fetchone()['id']
 
     def account_balance(self, account_id):
         with self.conn:

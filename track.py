@@ -151,8 +151,11 @@ class Book:
             c.execute('SELECT (id) FROM accounts WHERE name=?', (name,))
             return c.fetchone()['id']
 
-    def get_account_balance(self, name):
-        return sum(split['amount'] for split in self.get_splits(name))
+    def account_balance(self, account_id):
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT SUM(amount) FROM splits WHERE account_id=?', (account_id,))
+        return c.fetchone()['SUM(amount)']
 
     def get_splits(self, account_name = None):
         if account_name:

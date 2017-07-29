@@ -149,6 +149,17 @@ class Book:
             c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
         return c.fetchone()['id']
 
+    def account_ids(self):
+        """Generator function of account ids"""
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT id FROM accounts')
+            for row in c.fetchall():
+                yield row['id']
+
+    def account_ids_list(self):
+        """Return a list of account id"""
+        return [i for i in self.account_ids]
 
     def account_balance(self, account_id):
         with self.conn:
@@ -232,6 +243,18 @@ class Book:
                 }
                 transaction_detail['splits'].append(split)
         return transaction_detail
+
+    def transaction_ids(self):
+        """Generator function of transaction ids"""
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT id FROM transactions')
+            for row in c.fetchall():
+                yield row['id']
+
+    def transaction_ids_list(self):
+        """Return a list of transaction id"""
+        return [i for i in self.transactions_id()]
 
     @staticmethod
     def check_split_sum(splits):

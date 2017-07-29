@@ -1,7 +1,4 @@
-''' Track
-    A Simple Bookkeeping Module
-
-'''
+"""A simple bookkeeping module"""
 # Written in Python 3
 
 import sqlite3
@@ -9,10 +6,14 @@ import os
 import datetime
 
 class Book:
-    'A book for bookkeeping'
+    """A book for bookkeeping"""
 
     def __init__(self, database_name):
-        'Open existing database'
+        """Open an existing book.
+
+        Each instance has its own connection to the database. The connection
+        will be shared and used among methods of the instance.
+        """
         if os.path.exists(database_name):
             self.conn = sqlite3.connect(database_name)
             self.conn.execute('PRAGMA foreign_keys = ON')
@@ -22,7 +23,11 @@ class Book:
 
     @classmethod
     def new(cls, database_name):
-        'Create new database'
+        """Create a new book.
+
+        Create a new blank book by initializing an empty database. Return an
+        instance of the newly created book.
+        """
         if os.path.exists(database_name):
             raise FileExistsError
         else:
@@ -71,6 +76,7 @@ class Book:
     # with type_id 1, 2, 3, 4, 5 respectively.
     #
     def insert_account(self, account_detail):
+        """Insert a new account with the provided account detail."""
         name = account_detail['name']
         type_id = account_detail['type_id']
         if 'description' not in account_detail:
@@ -85,6 +91,7 @@ class Book:
              )
 
     def update_account(self, account_id, account_detail):
+        """Update the account detail of the given account id."""
         with self.conn:
             c = self.conn.cursor()
             for key, value in account_detail.items():
@@ -108,6 +115,10 @@ class Book:
         accounts.close()
 
     def account_detail_by_id(self, account_id):
+        """Return the account detail of the given id.
+
+        The returned account detail is a python dict.
+        """
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT * FROM accounts WHERE id=?', (account_id,))
@@ -116,6 +127,7 @@ class Book:
             return account
 
     def account_type_id(self, account_type):
+        """Return the type id of the account type name."""
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
@@ -161,6 +173,7 @@ class Book:
     # at least two splits which balance,
     # and an optional description
     def insert_transaction(self, transaction_detail):
+        """Insert a new transaction."""
         with self.conn:
             c = self.conn.cursor()
 
@@ -177,6 +190,11 @@ class Book:
             self.write_splits(transaction_id, transaction_detail['splits'])
 
     def update_transaction(self, transaction_id, transaction_detail):
+        """Update the transaction with the specified id.
+
+        Update the transaction detail and overwrite the splits of the
+        transaction.
+        """
         with self.conn:
             c = self.conn.cursor()
             for key, value in transaction_detail.items():
@@ -187,12 +205,17 @@ class Book:
                     self.write_splits(transaction_id, value)
 
     def delete_transaction(self, transaction_id):
+        """Delete the specified transaction."""
         with self.conn:
             c = self.conn.cursor()
             c.execute('DELETE FROM splits WHERE transaction_id=?', (transaction_id,))
             c.execute('DELETE FROM transactions WHERE id=?', (transaction_id,))
 
     def transaction_detail_by_id(self, transaction_id):
+        """Return the transaction detail with the specified id.
+
+        The transaction detail returned is a python dict.
+        """
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT * FROM transactions WHERE id=?', (transaction_id,))
@@ -222,10 +245,17 @@ class Book:
 
     @staticmethod
     def check_split_sum(splits):
+        """Check whether the splits are balanced.
+
+        The total amount of debit, represented as positive, and credit,
+        represented as negative, for each transaction should be the same and
+        therefore should sums up to zero.
+        """
         if sum(split['amount'] for split in splits) != 0:
             raise ValueError('Total debit and credit amount should balance')
 
     def write_splits(self, transaction_id, splits):
+        """Overwrite all existing splits related to the specified transaction."""
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT COUNT(*) FROM splits WHERE transaction_id=?', (transaction_id,))

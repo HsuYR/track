@@ -68,13 +68,18 @@ class Book:
     #
     # Account
     #
-    # account detail is a dict with key:
-    # name, type_id, [description, hidden]
-    # in which description is optional and hidden defaults to False
+    # account_detail is a dict with the following key:
+    # name -- the name string of the account,
+    # type_id -- the id of the account type,
+    # description -- optional text description of the account,
+    # hidden -- boolean value representing whether account will be hidden.
     #
     # Account type falls into one of the basic types:
-    # ASSET, LIABILITY, EQUITY, INCOME, or EXPENSE
-    # with type_id 1, 2, 3, 4, 5 respectively.
+    # ASSET -- with type_id 1,
+    # LIABILITY -- with type_id 2,
+    # EQUITY -- with type_id 3,
+    # INCOME -- with type_id 4, or
+    # EXPENSE -- with type_id 5.
     #
     def insert_account(self, account_detail):
         """Insert a new account with the provided account detail."""
@@ -183,9 +188,16 @@ class Book:
     # Transaction
     #
     # Each transaction is a dict consists of
-    # a date, which would be default to today,
-    # at least two splits which balance,
-    # and an optional description
+    # date -- a date, which would be default to today,
+    # splits -- list of at least two splits which balance, and
+    # description -- an optional description.
+    #
+    # Each split has
+    # account_id -- the affected account id,
+    # amount -- the amount taking effect,
+    #     which is either Dr. or Cr.,
+    #     represented by positive or negative amount respectively, and
+    # description -- an optional description.
     def insert_transaction(self, transaction_detail):
         """Insert a new transaction."""
         with self.conn:
@@ -250,11 +262,6 @@ class Book:
         return transaction_detail
 
 
-    # Each split has
-    # the affected account name,
-    # the amount taking effect,
-    # is either Dr. or Cr., represented by positive or negative amount respectively,
-    # and an optional description.
     def create_split(self, amount, account_name, description = ''):
         return {
             'amount': amount,

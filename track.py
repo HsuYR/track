@@ -16,6 +16,7 @@ class Book:
         """
         if os.path.exists(database_name):
             self.conn = sqlite3.connect(database_name)
+            self.conn.row_factory = sqlite3.Row
             self.conn.execute('PRAGMA foreign_keys = ON')
         else:
             raise FileNotFoundError
@@ -131,14 +132,14 @@ class Book:
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT (id) FROM account_types WHERE type=?', (account_type,))
-        return c.fetchone()[0]
+        return c.fetchone()['id']
 
     def account_id(self, name):
         conn = sqlite3.connect(self.database_name)
         with conn:
             c = conn.cursor()
             c.execute('SELECT (id) FROM accounts WHERE name=?', (name,))
-            return c.fetchone()[0]
+            return c.fetchone()['id']
 
     def get_account_balance(self, name):
         return sum(split['amount'] for split in self.get_splits(name))
@@ -221,12 +222,16 @@ class Book:
             c.execute('SELECT * FROM transactions WHERE id=?', (transaction_id,))
             transaction_detail = {}
             row = c.fetchone()
-            transaction_detail['date'] = row[1]
-            transaction_detail['description'] = row[2]
+            transaction_detail['date'] = row['date']
+            transaction_detail['description'] = row['description']
             transaction_detail['splits'] = []
             c.execute('SELECT * FROM splits WHERE transaction_id=?', (transaction_id,))
             for row in c.fetchall():
-                split = {'account_id': row[2], 'amount': row[3], 'description': row[4]}
+                split = {
+                    'account_id': row['account_id'],
+                    'amount': row['amount'],
+                    'description': row['description'],
+                }
                 transaction_detail['splits'].append(split)
         return transaction_detail
 
@@ -259,7 +264,7 @@ class Book:
         with self.conn:
             c = self.conn.cursor()
             c.execute('SELECT COUNT(*) FROM splits WHERE transaction_id=?', (transaction_id,))
-            if c.fetchone()[0]:
+            if c.fetchone()['COUNT(*)']:
                 c.execute('DELETE FROM splits WHERE transaction_id=?', (transaction_id,))
             for split in splits:
                 if 'description' not in split:

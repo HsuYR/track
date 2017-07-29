@@ -162,28 +162,6 @@ class Book:
             c.execute('SELECT SUM(amount) FROM splits WHERE account_id=?', (account_id,))
         return c.fetchone()['SUM(amount)']
 
-    def get_splits(self, account_name = None):
-        if account_name:
-            for transaction in self.transactions:
-                for split in transaction['splits']:
-                    if split['account_name'] == account_name:
-                        yield split
-        else:
-            for transaction in self.transactions:
-                for split in transaction['splits']:
-                    yield split
-
-    def rename_account_in_splits(self, old_name, new_name):
-        for split in get_splits(old_name):
-            split['account_name'] = new_name
-
-    def involves_account(self, transaction, account_name):
-        for split in transaction['splits']:
-            if split['account_name'] == account_name:
-                return True
-        return False
-
-
     #
     # Transaction
     #
@@ -260,14 +238,6 @@ class Book:
                 }
                 transaction_detail['splits'].append(split)
         return transaction_detail
-
-
-    def create_split(self, amount, account_name, description = ''):
-        return {
-            'amount': amount,
-            'account_name': account_name,
-            'description': description,
-            }
 
     @staticmethod
     def check_split_sum(splits):

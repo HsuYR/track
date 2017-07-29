@@ -210,7 +210,8 @@ class Book:
             c = self.conn.cursor()
             for key, value in transaction_detail.items():
                 if key in ['date', 'description']:
-                    c.execute('UPDATE transactions SET %s WHERE id=?' % key, (value, ))
+                    c.execute('UPDATE transactions SET %s=? WHERE id=?' % key,
+                    (value, transaction_id))
                 elif key == 'splits':
                     Book.check_split_sum(value)
                     self.write_splits(transaction_id, value)

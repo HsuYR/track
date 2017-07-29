@@ -192,19 +192,20 @@ class Book:
             c.execute('DELETE FROM splits WHERE transaction_id=?', (transaction_id,))
             c.execute('DELETE FROM transactions WHERE id=?', (transaction_id,))
 
-    def show_transaction(self, transaction):
-        print('-'*5+'Transaction detail:'+'-'*6)
-        print('Date: ', transaction['date'])
-        print('Description: ', transaction['description'])
-        print('Tags: ', transaction['tags'])
-        for split in transaction['splits']:
-            if(split['amount'] < 0):
-                print(-split['amount'], 'from', split['account_name'],
-                 ' p.s. '+split['description'] if split['description'] else '')
-            else:
-                print(split['amount'], 'to', split['account_name'],
-                 ' p.s. '+split['description'] if split['description'] else '')
-        print('-'*30)
+    def transaction_detail_by_id(self, transaction_id):
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT * FROM transactions WHERE id=?', (transaction_id,))
+            transaction_detail = {}
+            row = c.fetchone()
+            transaction_detail['date'] = row[1]
+            transaction_detail['description'] = row[2]
+            transaction_detail['splits'] = []
+            c.execute('SELECT * FROM splits WHERE transaction_id=?', (transaction_id,))
+            for row in c.fetchall():
+                split = {'account_id': row[2], 'amount': row[3], 'description': row[4]}
+                transaction_detail['splits'].append(split)
+        return transaction_detail
 
 
     # Each split has

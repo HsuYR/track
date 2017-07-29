@@ -99,21 +99,31 @@ class Book:
                 if key in ['name', 'type_id', 'description', 'hidden']:
                     c.execute('UPDATE accounts SET %s=? WHERE id=?;' % key, (value, account_id))
 
-    def del_account(self, name, move_to_name = 'Imbalance'):
-        accounts = shelve.open(self.accounts_filename)
-        if len([self.get_splits(name)]):
-            if move_to_name:
-                if move_to_name not in accounts:
-                    self.add_account(move_to_name, accounts[name]['type'])
-                self.rename_account_in_splits(name, move_to_name)
-            else:
-                print('Deleting associated transactions.')
-                transactions = shelve.open(self.transactions_filename)
-                    #for transaction in transactions:
-                    #    if not self.involves_account(transaction, name)]
-                print('Transacitons deleted.')
-        del accounts[name]
-        accounts.close()
+    def delete_account(self, account_id, move_to_id = 0):
+        """Delete the specified account.
+
+        Delete the account with specified account id. If there are not existing
+        transactions related to the account, delete the account directly. If
+        there are transactions related to the account, one can specify another
+        account that substitute the to-be-deleted account using move_to_id
+        argument. If move_to_id is set to 0 (also as default value), all
+        transactions related to the account will be deleted."""
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT COUNT(*) FROM splits WHERE account_id=?', (account_id,))
+            if c.fetchone()['COUNT(*)']:
+                if move_to_id:
+                    c.execute('SELECT * FROM splits')
+                    c.execute('UPDATE splits SET account_id=? WHERE account_id=?',
+                    (move_to_id, account_id))
+                else:
+                    c.execute('SELECT transaction_id FROM splits WHERE account_id=?',
+                    (account_id,))
+                    for row in c.fetchall():
+                        self.delete_transaction(row['transaction_id'])
+            for row in c.fetchall():
+                print(row['transaction_id'], row[2], row[3], row[4])
+            c.execute('DELETE FROM accounts WHERE id=?', (account_id,))
 
     def account_detail_by_id(self, account_id):
         """Return the account detail of the given id.

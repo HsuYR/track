@@ -256,6 +256,19 @@ class Book:
         """Return a list of transaction id"""
         return [i for i in self.transaction_ids()]
 
+    def transaction_ids_between_date(self, start_date, end_date):
+        """Generator function yielding transaction ids between dates
+
+        Both start_date and end_date are inclusive. Both start_date and
+        end_date are strings and follow the format "YYYY-MM-DD".
+        """
+        with self.conn:
+            c = self.conn.cursor()
+            c.execute('SELECT id FROM transactions WHERE date BETWEEN ? AND ?',
+            (start_date, end_date))
+            for row in c.fetchall():
+                yield row['id']
+
     @staticmethod
     def check_split_sum(splits):
         """Check whether the splits are balanced.

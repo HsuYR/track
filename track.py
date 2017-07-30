@@ -159,7 +159,7 @@ class Book:
 
     def account_ids_list(self):
         """Return a list of account id"""
-        return [i for i in self.account_ids]
+        return [i for i in self.account_ids()]
 
     def account_balance(self, account_id):
         with self.conn:
@@ -254,7 +254,7 @@ class Book:
 
     def transaction_ids_list(self):
         """Return a list of transaction id"""
-        return [i for i in self.transactions_id()]
+        return [i for i in self.transaction_ids()]
 
     @staticmethod
     def check_split_sum(splits):
